@@ -19,11 +19,13 @@ fbs run
 - [x] Shortcuts
 - [ ] Add ssl icon to url bar
 - [ ] New tab botton on tabs panel
-- [ ] Buttons hover style
+- [x] Buttons hover style
 - [ ] Site favicon in tabs and app title 
 - [ ] Print page
 - [ ] Save page as pdf
 - [ ] Open in new tab
+- [ ] Add html page to start tab
+- [ ] Links with tag target blank dont work
 - [ ] Bookmarks
 - - [ ] Save current page to bookmarks
 - - [ ] View bookmarks list
@@ -34,3 +36,4 @@ fbs run
 - - [ ] Edit history (Delete)
 - - [ ] Private mode (Without history)
 - - [ ] Encryption history
+- [ ] Password Manager

@@ -11,6 +11,7 @@ from about import AboutDialog
 import os
 import sys
 import pathlib
+import time
 
 
 
@@ -26,6 +27,48 @@ class MainWindow(QMainWindow):
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_current_tab)
         self.setCentralWidget(self.tabs)
+        
+
+        self.tabs.setStyleSheet("""
+            QTabBar {
+                background: #F0F0F0;          
+            }
+            QTabBar::tab {
+                background: #F0F0F0;
+                color: #3b3b3b;
+                height: 20px;
+                margin-left: 5px;
+            }
+            QTabBar::tab::after {
+                content: "|";
+            }
+            QTabBar::tab:selected {
+                background-color:  #c2c2c2;
+                color: #000000;
+                border: 1px solid #a3a0a3;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                border-bottom-left-radius: -4px;
+                border-bottom-right-radius: -4px;
+                padding-left: 5px;
+                padding-right: 5px;
+                
+            }
+            QTabBar::close-button {
+                image: url('data/images/close.png');
+                subcontrol-position: right;
+            }
+            QTabBar::close-button:hover {
+                image: url('data/images/close-hover.png');
+            }
+            QLabel {
+                background-color: #23272a;
+                font-size: 22px;
+                padding-left: 5px;
+                color: white;
+
+            }
+        """)
 
         self.status = QStatusBar()
         self.setStatusBar(self.status)
@@ -37,21 +80,17 @@ class MainWindow(QMainWindow):
         navtb.setMovable(False)
         self.addToolBar(navtb)
 
-
-        '''
-        menutb = QToolBar("Tools bar")
-        menutb.setIconSize(QSize(32,32))
-        menutb.setFloatable(False)
-        menutb.setMovable(False)
-        self.addToolBar(QtCore.Qt.RightToolBarArea, menutb)
-        '''
-
         navtb.setStyleSheet("""
             QToolButton {
                 border: 2px;
                 padding: 1px 4px;
                 background: transparent;
                 border-radius: 4px;
+                
+            }
+            QToolButton:hover{
+                border: 1px;
+                background: #c2c2c2;
             }
 
             QToolButton:selected { /* when selected using mouse or keyboard */
@@ -94,9 +133,9 @@ class MainWindow(QMainWindow):
         self.urlbar = QLineEdit()
         self.urlbar.returnPressed.connect(self.navigate_to_url)
         navtb.addWidget(self.urlbar)
-        #self.urlbar.setStyleSheet('border-radius: 4px; border-width: 3px;')
+       
         self.urlbar.setStyleSheet("""
-            border: 2px solid gray;
+            border: 1px;
             border-radius: 10px;
             padding: 3;
             background: #fff;
@@ -123,7 +162,7 @@ class MainWindow(QMainWindow):
             QMenuBar {
                 border: 2px;
                 padding: 10px 2px;
-                max-width: 40px;
+                max-width: 50px;
             }
 
             QMenuBar::item {
@@ -135,11 +174,11 @@ class MainWindow(QMainWindow):
             }
 
             QMenuBar::item:selected { /* when selected using mouse or keyboard */
-                background: #a8a8a8;
+                background: #c2c2c2;
             }
 
             QMenuBar::item:pressed {
-                background: #888888;
+                background: #c2c2c2;
             }
         """)
         self.file_menu = QMenu('MENU', self)
@@ -181,11 +220,47 @@ class MainWindow(QMainWindow):
         self.shortcut_open = QShortcut(QKeySequence('F5'), self)
         self.shortcut_open.activated.connect(lambda: self.tabs.currentWidget().reload())
 
+        ''' Progress bar '''
+        self.progressBar = QProgressBar()
+        self.progressBar.setGeometry(0, 0, 50, 25)
+        self.progressBar.setFont(QFont('Times', 7))
+        self.progressBar.setStyleSheet("""
+            QProgressBar {
+                max-width: 200px;
+                height: 15px;
+                padding: 0;
+                text-align: center;
+                
+            }
+            QProgressBar::chunk{
+                border: 2px;
+                border-radius: 4px;
+                background: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 #49D697, stop: 1 white);
+            }
+        """)
+        self.statusBar().addPermanentWidget(self.progressBar)
+
+        
         self.show()
 
         self.setWindowIcon(QIcon(os.path.join('data/images', 'icon.png')))
     
-    
+    @QtCore.pyqtSlot()
+    def loadStartedHandler(self):
+        print(time.time(), ": load started")
+        
+
+    @QtCore.pyqtSlot(int)
+    def loadProgressHandler(self, prog):
+        print(time.time(), ":load progress", prog)
+        #self.statusBar().showMessage(str(prog) + '%')
+        self.progressBar.setValue(prog)
+        
+    @QtCore.pyqtSlot()
+    def loadFinishedHandler(self):
+        print(time.time(), ": load finished")
+        self.statusBar().showMessage('Ready')
+
     @QtCore.pyqtSlot("QWebEngineDownloadItem*")
     def on_downloadRequested(self, download):
         old_path = download.url().path()  # download.path()
@@ -207,10 +282,10 @@ class MainWindow(QMainWindow):
         reloadAction = menu.addAction(QIcon(os.path.join('data/images', 'arrow-circle-315.png')), "Reload page")
         reloadAction.triggered.connect(lambda: self.tabs.currentWidget().reload())
         
-        innewtabAction = menu.addAction("O&pen in New Window")
+        innewtabAction = menu.addAction(QIcon(os.path.join('data/images', 'ui-tab--plus.png')), "Open in new tab")
         innewtabAction.triggered.connect(lambda: self.add_new_tab())
         
-        sourceAction = menu.addAction("View source")
+        sourceAction = menu.addAction(QIcon(os.path.join('data/images', 'page-source.png')),"View page source")
         sourceAction.triggered.connect(lambda: self.add_new_tab(qurl=QUrl(url)))
         menu.exec_(event.globalPos())
 
@@ -232,6 +307,10 @@ class MainWindow(QMainWindow):
         QtWebEngineWidgets.QWebEngineProfile.defaultProfile().downloadRequested.connect(
             self.on_downloadRequested
         )
+
+        browser.loadStarted.connect(self.loadStartedHandler)
+        browser.loadProgress.connect(self.loadProgressHandler)
+        browser.loadFinished.connect(self.loadFinishedHandler)
 
         browser.contextMenuEvent = self.mycontextMenuEvent
         i = self.tabs.addTab(browser, label)
