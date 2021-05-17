@@ -24,7 +24,7 @@ fbs run
 - [ ] Print page
 - [ ] Save page as pdf
 - [ ] Open in new tab
-- [ ] Add html page to start tab
+- [x] Add html page to start tab
 - [ ] Links with tag target blank dont work
 - [ ] Bookmarks
 - - [ ] Save current page to bookmarks
